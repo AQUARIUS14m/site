@@ -4,115 +4,305 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
   <title>ReYMooN & ReYMooD</title>
+  <!-- تلگرام وب‌اپ SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;600;800&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: radial-gradient(circle at top, #1e1338 0%, #0a0812 100%);
-      --card-bg: rgba(255, 255, 255, 0.05);
-      --border: rgba(255, 255, 255, 0.12);
-      --text: #f5f5f7;
-      --sub: #a1a1aa;
+      --bg: radial-gradient(circle at top, #1c1033 0%, #07050d 100%);
+      --card-bg: rgba(255, 255, 255, 0.04);
+      --border: rgba(255, 255, 255, 0.1);
+      --text: #f8fafc;
+      --sub: #94a3b8;
+      --moon: #a855f7;
+      --mood: #f59e0b;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Vazirmatn', sans-serif; }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Vazirmatn', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
     body {
       background: var(--bg);
       min-height: 100vh;
       color: var(--text);
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
       padding: 16px;
+      overflow-x: hidden;
     }
+
     .container {
       width: 100%;
-      max-width: 400px;
+      max-width: 410px;
       background: var(--card-bg);
-      backdrop-filter: blur(20px);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
       border: 1px solid var(--border);
-      border-radius: 24px;
-      padding: 22px;
+      border-radius: 28px;
+      padding: 24px 20px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
       text-align: center;
+      position: relative;
     }
+
     h1 {
-      font-size: 22px;
+      font-size: 24px;
       font-weight: 800;
       margin-bottom: 6px;
-      background: linear-gradient(90deg, #c084fc, #f59e0b);
+      background: linear-gradient(90deg, #c084fc, #fbbf24);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
-    .subtitle { font-size: 13px; color: var(--sub); margin-bottom: 20px; }
-    .roles-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+
+    .subtitle {
+      font-size: 13px;
+      color: var(--sub);
+      margin-bottom: 22px;
+    }
+
+    .status-alert {
+      font-size: 12px;
+      padding: 8px 12px;
+      border-radius: 12px;
+      margin-bottom: 14px;
+      background: rgba(239, 68, 68, 0.18);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #fca5a5;
+      display: none;
+    }
+
+    .roles-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
     .role-btn {
-      background: rgba(255, 255, 255, 0.03);
+      background: rgba(255, 255, 255, 0.02);
       border: 1.5px solid var(--border);
-      border-radius: 16px;
-      padding: 18px 10px;
+      border-radius: 20px;
+      padding: 18px 12px;
       color: var(--text);
       cursor: pointer;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    .role-btn.moon { border-color: rgba(168, 85, 247, 0.4); }
-    .role-btn.mood { border-color: rgba(251, 146, 60, 0.4); }
-    .role-icon { font-size: 28px; }
-    .role-name { font-weight: 700; font-size: 15px; }
+
+    .role-btn:active {
+      transform: scale(0.95);
+    }
+
+    .role-btn.moon {
+      border-color: rgba(168, 85, 247, 0.35);
+    }
+    .role-btn.mood {
+      border-color: rgba(245, 158, 11, 0.35);
+    }
+
+    .role-btn.selected-moon {
+      background: rgba(168, 85, 247, 0.18);
+      border-color: var(--moon);
+      box-shadow: 0 0 20px rgba(168, 85, 247, 0.35);
+    }
+
+    .role-btn.selected-mood {
+      background: rgba(245, 158, 11, 0.18);
+      border-color: var(--mood);
+      box-shadow: 0 0 20px rgba(245, 158, 11, 0.35);
+    }
+
+    .role-icon {
+      font-size: 30px;
+    }
+
+    .role-name {
+      font-weight: 700;
+      font-size: 15px;
+    }
+
+    .role-holder {
+      font-size: 11px;
+      color: var(--sub);
+      background: rgba(255, 255, 255, 0.06);
+      padding: 3px 8px;
+      border-radius: 10px;
+    }
+
+    .turn-badge {
+      display: inline-block;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 14px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border);
+      transition: all 0.3s;
+    }
+
+    .turn-badge.active-turn {
+      background: linear-gradient(135deg, rgba(168, 85, 247, 0.25), rgba(245, 158, 11, 0.25));
+      border-color: #fbbf24;
+      box-shadow: 0 0 16px rgba(245, 158, 11, 0.25);
+    }
+
+    .question-card {
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 22px 16px;
+      min-height: 105px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      line-height: 1.6;
+      font-weight: 600;
+      margin-bottom: 18px;
+    }
+
+    .answer-box {
+      margin-bottom: 14px;
+      display: none;
+    }
+
     textarea {
       width: 100%;
-      height: 90px;
-      background: rgba(0,0,0,0.35);
+      height: 95px;
+      background: rgba(0, 0, 0, 0.4);
       border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 10px;
+      border-radius: 16px;
+      padding: 12px;
       color: #fff;
       font-size: 14px;
       outline: none;
       resize: none;
-      margin-bottom: 12px;
+      line-height: 1.5;
     }
-    .actions { display: flex; flex-direction: column; gap: 8px; }
+
+    textarea:focus {
+      border-color: var(--moon);
+    }
+
+    .actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
     .btn {
       width: 100%;
       border: none;
-      border-radius: 12px;
-      padding: 12px;
+      border-radius: 14px;
+      padding: 14px;
       font-size: 14px;
       font-weight: 700;
       cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: transform 0.15s ease;
     }
-    .btn-primary { background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%); color: white; }
-    .btn-secondary { background: rgba(255, 255, 255, 0.08); color: var(--text); border: 1px solid var(--border); }
-    .btn-danger { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+
+    .btn:active {
+      transform: scale(0.97);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+      color: white;
+      box-shadow: 0 6px 18px rgba(168, 85, 247, 0.3);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-danger {
+      background: rgba(239, 68, 68, 0.12);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.25);
+    }
+
+    .last-answer {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px dashed var(--border);
+      border-radius: 16px;
+      padding: 12px 14px;
+      margin-top: 16px;
+      font-size: 13px;
+      color: var(--sub);
+      text-align: right;
+    }
+
+    .hidden {
+      display: none !important;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>مچ دونفره 🌙 ☀️</h1>
-    <p class="subtitle">عملیات مورد نظرت رو انتخاب کن</p>
+    <p class="subtitle">سوال‌های عمیق و موندگار</p>
 
-    <!-- انتخاب نقش -->
-    <div class="roles-grid">
-      <button class="role-btn moon" onclick="sendAction('pick_role', {role: 'ReYMooN'})">
-        <span class="role-icon">🌙</span>
-        <span class="role-name">انتخاب ReYMooN</span>
-      </button>
+    <div id="conn-alert" class="status-alert">در حال اتصال به سرور...</div>
 
-      <button class="role-btn mood" onclick="sendAction('pick_role', {role: 'ReYMooD'})">
-        <span class="role-icon">☀️</span>
-        <span class="role-name">انتخاب ReYMooD</span>
-      </button>
+    <!-- مرحله ۱: انتخاب نقش -->
+    <div id="role-selection-section">
+      <div class="roles-grid">
+        <button class="role-btn moon" id="btn-reymoon" onclick="pickRole('ReYMooN')">
+          <span class="role-icon">🌙</span>
+          <span class="role-name">ReYMooN</span>
+          <span class="role-holder" id="moon-holder">خالی</span>
+        </button>
+
+        <button class="role-btn mood" id="btn-reymood" onclick="pickRole('ReYMooD')">
+          <span class="role-icon">☀️</span>
+          <span class="role-name">ReYMooD</span>
+          <span class="role-holder" id="mood-holder">خالی</span>
+        </button>
+      </div>
+      <p style="font-size: 12px; color: var(--sub);" id="waiting-text">یکی‌تون ReYMooN بشه و یکی ReYMooD</p>
     </div>
 
-    <!-- فرم پاسخ -->
-    <textarea id="answer-input" placeholder="پاسخ سوال فعلی رو اینجا بنویس..."></textarea>
-    
-    <div class="actions">
-      <button class="btn btn-primary" onclick="submitAnswer()">ارسال جواب به گروه 💌</button>
-      <button class="btn btn-secondary" onclick="sendAction('skip_question')">رد کردن سوال فعلی ⏭</button>
-      <button class="btn btn-danger" onclick="sendAction('end_match')">اتمام مچ 🛑</button>
+    <!-- مرحله ۲: محیط سوالات و بازی -->
+    <div id="game-section" class="hidden">
+      <div class="turn-badge" id="turn-badge">نوبت: ...</div>
+
+      <div class="question-card" id="question-card">
+        در حال بارگذاری سوال...
+      </div>
+
+      <div class="answer-box" id="answer-box">
+        <textarea id="answer-input" placeholder="حس و جوابت رو با خیال راحت بنویس..."></textarea>
+        <button class="btn btn-primary" onclick="submitAnswer()" style="margin-top: 8px;">ارسال پاسخ 💌</button>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-primary" id="btn-answer-toggle" onclick="toggleAnswerInput()">جواب می‌دم ✍️</button>
+        <button class="btn btn-secondary" onclick="skipQuestion()">رد کردن سوال ⏭</button>
+        <button class="btn btn-danger" onclick="endMatch()">اتمام مچ 🛑</button>
+      </div>
+
+      <div class="last-answer hidden" id="last-answer-box">
+        <span style="font-weight: 700; color: #fff;" id="last-answer-author"></span>
+        <p id="last-answer-text" style="margin-top: 4px; line-height: 1.5;"></p>
+      </div>
     </div>
   </div>
 
@@ -123,20 +313,146 @@
       tg.ready();
     }
 
+    const urlParams = new URLSearchParams(window.location.search);
+    const chatId = urlParams.get('chat_id') || "default_room";
+    const serverHost = urlParams.get('server');
+
+    const user = tg?.initDataUnsafe?.user || {
+      id: Math.floor(Math.random() * 100000),
+      first_name: "کاربر"
+    };
+
+    let ws;
+    let gameState = null;
+
+    function connectWebSocket() {
+      if (!serverHost) {
+        const alertBox = document.getElementById("conn-alert");
+        alertBox.style.display = "block";
+        alertBox.innerText = "خطا: پارامتر آدرس سرور دریافت نشد!";
+        return;
+      }
+
+      const wsUrl = `wss://${serverHost}/ws/${chatId}`;
+      ws = new WebSocket(wsUrl);
+
+      ws.onopen = () => {
+        document.getElementById("conn-alert").style.display = "none";
+      };
+
+      ws.onmessage = (event) => {
+        gameState = JSON.parse(event.data);
+        renderState();
+      };
+
+      ws.onclose = () => {
+        const alertBox = document.getElementById("conn-alert");
+        alertBox.style.display = "block";
+        alertBox.innerText = "اتصال با سیستم قطع شد. در حال تلاش مجدد...";
+        setTimeout(connectWebSocket, 2000);
+      };
+    }
+
     function sendAction(action, payload = {}) {
-      if (tg) {
-        tg.sendData(JSON.stringify({ action, ...payload }));
-        tg.close();
-      } else {
-        alert("لطفاً داخل تلگرام باز کنید.");
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ action, user_id: user.id, user_name: user.first_name, ...payload }));
       }
     }
 
-    function submitAnswer() {
-      const text = document.getElementById("answer-input").value.trim();
-      if (!text) return;
-      sendAction("submit_answer", { answer: text });
+    function haptic(type = "light") {
+      tg?.HapticFeedback?.impactOccurred(type);
     }
+
+    function pickRole(role) {
+      haptic("medium");
+      sendAction("pick_role", { role });
+    }
+
+    function toggleAnswerInput() {
+      haptic("light");
+      const currentTurnUser = gameState?.roles[gameState?.turn];
+      if (currentTurnUser?.id !== user.id) {
+        tg?.showAlert ? tg.showAlert("نوبت تو نیست رفیق! صبر کن نوبتت بشه 😄") : alert("نوبت تو نیست!");
+        return;
+      }
+      document.getElementById("answer-box").style.display = "block";
+      document.getElementById("btn-answer-toggle").style.display = "none";
+    }
+
+    function submitAnswer() {
+      const txt = document.getElementById("answer-input").value.trim();
+      if (!txt) return;
+      haptic("heavy");
+      sendAction("submit_answer", { answer: txt });
+      document.getElementById("answer-input").value = "";
+      document.getElementById("answer-box").style.display = "none";
+      document.getElementById("btn-answer-toggle").style.display = "flex";
+    }
+
+    function skipQuestion() {
+      haptic("warning");
+      const currentTurnUser = gameState?.roles[gameState?.turn];
+      if (currentTurnUser?.id !== user.id) {
+        tg?.showAlert ? tg.showAlert("فقط کسی که نوبتشه می‌تونه سوال رو رد کنه!") : alert("نوبت تو نیست!");
+        return;
+      }
+      sendAction("skip_question");
+    }
+
+    function endMatch() {
+      haptic("error");
+      sendAction("end_match");
+    }
+
+    function renderState() {
+      if (!gameState) return;
+
+      const moon = gameState.roles.ReYMooN;
+      const mood = gameState.roles.ReYMooD;
+
+      document.getElementById("moon-holder").innerText = moon ? moon.name : "خالی";
+      document.getElementById("mood-holder").innerText = mood ? mood.name : "خالی";
+
+      const btnMoon = document.getElementById("btn-reymoon");
+      const btnMood = document.getElementById("btn-reymood");
+
+      if (moon) btnMoon.classList.add("selected-moon");
+      else btnMoon.classList.remove("selected-moon");
+
+      if (mood) btnMood.classList.add("selected-mood");
+      else btnMood.classList.remove("selected-mood");
+
+      if (gameState.active) {
+        document.getElementById("role-selection-section").classList.add("hidden");
+        document.getElementById("game-section").classList.remove("hidden");
+
+        const turnRole = gameState.turn;
+        const turnUser = gameState.roles[turnRole];
+        const isMyTurn = turnUser?.id === user.id;
+
+        const badge = document.getElementById("turn-badge");
+        badge.innerText = `نوبت: ${turnRole} (${turnUser?.name || ''})`;
+        if (isMyTurn) {
+          badge.classList.add("active-turn");
+        } else {
+          badge.classList.remove("active-turn");
+        }
+
+        document.getElementById("question-card").innerText = gameState.current_question || "";
+
+        if (gameState.last_answer) {
+          const lBox = document.getElementById("last-answer-box");
+          lBox.classList.remove("hidden");
+          document.getElementById("last-answer-author").innerText = `💬 جواب قبلی از ${gameState.last_answer.author}:`;
+          document.getElementById("last-answer-text").innerText = `« ${gameState.last_answer.text} »`;
+        }
+      } else {
+        document.getElementById("role-selection-section").classList.remove("hidden");
+        document.getElementById("game-section").classList.add("hidden");
+      }
+    }
+
+    connectWebSocket();
   </script>
 </body>
 </html>
