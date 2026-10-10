@@ -1,283 +1,79 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ReyWord</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-        :root {
-            --bg: #0f172a;
-            --card: #1e293b;
-            --primary: #6366f1;
-            --primary-hover: #4f46e5;
-            --text: #f1f5f9;
-            --muted: #94a3b8;
-            --success: #22c55e;
-            --danger: #ef4444;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Vazirmatn', 'Tahoma', sans-serif;
-        }
-
-        body {
-            background: var(--bg);
-            color: var(--text);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px;
-        }
-
-        .header {
-            text-align: center;
-            margin: 30px 0 40px;
-        }
-
-        .logo {
-            font-size: 42px;
-            font-weight: 800;
-            background: linear-gradient(135deg, #6366f1, #a855f7);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 8px;
-        }
-
-        .subtitle {
-            color: var(--muted);
-            font-size: 15px;
-        }
-
-        .stats {
-            display: flex;
-            gap: 20px;
-            margin-bottom: 40px;
-        }
-
-        .stat-card {
-            background: var(--card);
-            padding: 12px 20px;
-            border-radius: 16px;
-            text-align: center;
-            min-width: 90px;
-        }
-
-        .stat-value {
-            font-size: 20px;
-            font-weight: 700;
-        }
-
-        .stat-label {
-            font-size: 12px;
-            color: var(--muted);
-            margin-top: 4px;
-        }
-
-        .menu {
-            width: 100%;
-            max-width: 360px;
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-        }
-
-        .btn {
-            background: var(--card);
-            border: none;
-            color: var(--text);
-            padding: 18px 24px;
-            border-radius: 18px;
-            font-size: 17px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            transition: all 0.2s;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        }
-
-        .btn:active {
-            transform: scale(0.97);
-        }
-
-        .btn.primary {
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
-        }
-
-        .btn.secondary {
-            background: var(--card);
-            border: 1px solid #334155;
-        }
-
-        .btn-icon {
-            font-size: 24px;
-        }
-
-        .footer {
-            margin-top: auto;
-            padding: 20px;
-            color: var(--muted);
-            font-size: 13px;
-            text-align: center;
-        }
-
-        /* صفحه بازی (ساده) */
-        .game-screen {
-            display: none;
-            width: 100%;
-            max-width: 360px;
-            text-align: center;
-        }
-
-        .word-display {
-            font-size: 32px;
-            letter-spacing: 12px;
-            margin: 40px 0;
-            font-weight: 700;
-            color: #e2e8f0;
-        }
-
-        .keyboard {
-            display: grid;
-            grid-template-columns: repeat(10, 1fr);
-            gap: 6px;
-            margin-top: 30px;
-        }
-
-        .key {
-            background: #334155;
-            border: none;
-            color: white;
-            padding: 12px 0;
-            border-radius: 8px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-
-        .key:active {
-            background: #475569;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>واژه‌ساز تیمی سروش</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 </head>
 <body>
-    <!-- صفحه اصلی -->
-    <div id="home">
-        <div class="header">
-            <div class="logo">ReyWord</div>
-            <div class="subtitle">بازی حدس کلمه رقابتی</div>
+  <!-- بخش ۱: لابی و انتخاب مود -->
+  <div id="screen-lobby" class="screen active">
+    <div class="card">
+      <h2>🏆 واژه‌ساز آنلاین</h2>
+      <p class="subtitle">حالت بازی را انتخاب کنید</p>
+
+      <div class="mode-select">
+        <button id="btn-mode-1v1" class="btn active">دو نفره (1 vs 1)</button>
+        <button id="btn-mode-2v2" class="btn">تیمی (2 vs 2)</button>
+      </div>
+
+      <div class="input-group">
+        <input type="text" id="input-room" placeholder="کد اتاق (اختیاری برای ساخت/پیوستن)">
+      </div>
+
+      <button id="btn-join" class="btn-primary">شروع و ورود به اتاق</button>
+    </div>
+  </div>
+
+  <!-- بخش ۲: اتاق انتظار -->
+  <div id="screen-waiting" class="screen">
+    <div class="card">
+      <h3>اتاق: <span id="display-room-id">---</span></h3>
+      <div id="team-assignment" class="teams-grid">
+        <div class="team-box" id="team-a-box">
+          <h4>تیم ۱</h4>
+          <ul id="team-a-list"></ul>
+          <button class="btn-small" onclick="switchTeam('teamA')">عضویت در تیم ۱</button>
         </div>
-
-        <div class="stats">
-            <div class="stat-card">
-                <div class="stat-value" id="level">۱</div>
-                <div class="stat-label">سطح</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="coins">۰</div>
-                <div class="stat-label">سکه</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="rank">—</div>
-                <div class="stat-label">رتبه</div>
-            </div>
+        <div class="team-box" id="team-b-box">
+          <h4>تیم ۲</h4>
+          <ul id="team-b-list"></ul>
+          <button class="btn-small" onclick="switchTeam('teamB')">عضویت در تیم ۲</button>
         </div>
+      </div>
+      <button id="btn-start" class="btn-primary mt-20" disabled>شروع رقابت</button>
+    </div>
+  </div>
 
-        <div class="menu">
-            <button class="btn primary" onclick="startGame('1v1')">
-                <span>۱ vs ۱</span>
-                <span class="btn-icon">⚔️</span>
-            </button>
-
-            <button class="btn primary" onclick="startGame('2v2')">
-                <span>۲ vs ۲</span>
-                <span class="btn-icon">👥</span>
-            </button>
-
-            <button class="btn secondary" onclick="startGame('practice')">
-                <span>تمرین</span>
-                <span class="btn-icon">🎯</span>
-            </button>
-
-            <button class="btn secondary" onclick="alert('به زودی...')">
-                <span>لیگ و رتبه‌بندی</span>
-                <span class="btn-icon">🏆</span>
-            </button>
-
-            <button class="btn secondary" onclick="alert('به زودی...')">
-                <span>پروفایل من</span>
-                <span class="btn-icon">👤</span>
-            </button>
-        </div>
+  <!-- بخش ۳: صحنه اصلی بازی -->
+  <div id="screen-game" class="screen">
+    <div class="game-header">
+      <div class="timer" id="timer">۶۰</div>
+      <div class="score-board">
+        <span class="score-item">تیم ۱: <b id="score-a">۰</b></span>
+        <span class="score-divider">|</span>
+        <span class="score-item">تیم ۲: <b id="score-b">۰</b></span>
+      </div>
     </div>
 
-    <!-- صفحه بازی ساده -->
-    <div class="game-screen" id="game">
-        <h2 id="mode-title">بازی</h2>
-        <div class="word-display" id="word">_ _ _ _ _</div>
-        <p style="color: var(--muted); margin-bottom: 20px;">حرفی را انتخاب کنید</p>
+    <!-- حروف راند -->
+    <div class="letters-board" id="letters-container"></div>
 
-        <div class="keyboard" id="keyboard"></div>
+    <!-- فرم ارسال کلمه -->
+    <form id="word-form" onsubmit="submitWord(event)">
+      <input type="text" id="word-input" autocomplete="off" placeholder="کلمه را بنویسید..." />
+      <button type="submit" class="btn-submit">ثبت</button>
+    </form>
 
-        <button class="btn secondary" style="margin-top: 30px;" onclick="backToHome()">
-            بازگشت به منو
-        </button>
+    <!-- تاریخچه کلمات کشف شده -->
+    <div class="word-feed">
+      <h4>کلمات ثبت‌شده اخیر:</h4>
+      <div id="word-logs" class="logs-container"></div>
     </div>
+  </div>
 
-    <div class="footer">
-        ReyWord • نسخه ۱.۰
-    </div>
-
-    <script>
-        // اتصال به WebApp سروش / تلگرام
-        const tg = window.Telegram?.WebApp;
-        if (tg) {
-            tg.ready();
-            tg.expand();
-            // می‌تونی تم را از tg.themeParams بگیری
-        }
-
-        function startGame(mode) {
-            document.getElementById('home').style.display = 'none';
-            document.getElementById('game').style.display = 'block';
-
-            const titles = {
-                '1v1': '۱ vs ۱',
-                '2v2': '۲ vs ۲',
-                'practice': 'حالت تمرین'
-            };
-            document.getElementById('mode-title').innerText = titles[mode];
-
-            // ساخت کیبورد ساده فارسی
-            const letters = 'اآبپتثجچحخدذرزژسشصضطظعغفقکگلمنوهی';
-            const keyboard = document.getElementById('keyboard');
-            keyboard.innerHTML = '';
-
-            for (let letter of letters) {
-                const btn = document.createElement('button');
-                btn.className = 'key';
-                btn.innerText = letter;
-                btn.onclick = () => guessLetter(letter, btn);
-                keyboard.appendChild(btn);
-            }
-        }
-
-        function guessLetter(letter, btn) {
-            btn.disabled = true;
-            btn.style.opacity = '0.4';
-            // اینجا بعداً منطق واقعی بازی اضافه می‌شود
-            console.log('حدس حرف:', letter);
-        }
-
-        function backToHome() {
-            document.getElementById('game').style.display = 'none';
-            document.getElementById('home').style.display = 'block';
-        }
-    </script>
+  <script src="app.js"></script>
 </body>
 </html>
